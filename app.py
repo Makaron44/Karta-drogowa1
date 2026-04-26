@@ -4,8 +4,14 @@ import pandas as pd
 import csv
 from pathlib import Path
 import io
+import pytz
 from fpdf import FPDF
 from streamlit_gsheets import GSheetsConnection
+
+# Funkcja pobierająca czas w Polsce
+def get_now_pl():
+    tz = pytz.timezone('Europe/Warsaw')
+    return datetime.datetime.now(tz)
 
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(
@@ -45,29 +51,42 @@ def generuj_pdf(df, dane_kierowcy):
         font_bold = "ArialBD"
     except:
         font_name = "Helvetica"
-        font_bold = "Helvetica-Bold"
-    
     # --- NAGŁÓWEK (NIEBIESKI PAS) ---
     pdf.set_fill_color(30, 116, 190)
     pdf.rect(0, 0, 297, 30, 'F')
     
     pdf.set_text_color(255, 255, 255)
-    pdf.set_font(font_bold, size=22)
-    pdf.text(10, 20, f"KARTA DROGOWA - {datetime.date.today().strftime('%m.%Y')}")
+    pdf.set_font("helvetica", "B", 16)
+    pdf.cell(0, 10, "KARTA DROGOWA", ln=True, align="C")
+    pdf.ln(5)
     
-    # Dane kierowców i pojazdu
-    pdf.set_font(font_name, size=9)
-    pdf.text(180, 10, f"Kierowca 1:  {dane_kierowcy.get('kierowca', '....................')}")
-    pdf.text(180, 15, f"Kierowca 2:  {dane_kierowcy.get('kierowca2', '....................')}")
-    pdf.text(180, 20, f"Nr Rejestracyjny:  {dane_kierowcy.get('nr_rej', '....................')}")
-    pdf.text(180, 25, f"Nr Naczepy:  {dane_kierowcy.get('nr_nac', '....................')}")
+    # Nagłówek - Dane pojazdu i kierowcy
+    pdf.set_font("helvetica", "B", 10)
+    pdf.set_fill_color(200, 220, 255)
+    pdf.cell(40, 8, "Kierowca 1:", 1, 0, "L", True)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(100, 8, str(dane_kierowcy.get('kierowca', '')), 1, 0, "L")
     
-    pdf.ln(25)
+    pdf.set_font("helvetica", "B", 10)
+    pdf.cell(40, 8, "Nr rej. ciągnik:", 1, 0, "L", True)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(0, 8, str(dane_kierowcy.get('nr_rej', '')), 1, 1, "L")
     
-    # --- TABELA ---
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font(font_bold, size=8)
-    pdf.set_fill_color(30, 116, 190)
+    pdf.set_font("helvetica", "B", 10)
+    pdf.cell(40, 8, "Kierowca 2:", 1, 0, "L", True)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(100, 8, str(dane_kierowcy.get('kierowca2', '')), 1, 0, "L")
+    
+    pdf.set_font("helvetica", "B", 10)
+    pdf.cell(40, 8, "Nr naczepy:", 1, 0, "L", True)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(0, 8, str(dane_kierowcy.get('nr_nac', '')), 1, 1, "L")
+    
+    pdf.ln(5)
+    
+    # Tabela z danymi
+    pdf.set_font("helvetica", "B", 8)
+    pdf.set_fill_color(41, 128, 185)
     pdf.set_text_color(255, 255, 255)
     
     col_widths = [8, 18, 15, 15, 18, 35, 30, 10, 10, 10, 15, 25, 68]
@@ -139,8 +158,6 @@ def inicjalizuj_plik():
         df = pd.DataFrame(columns=NAGLOWKI)
         df.to_csv(PLIK_CSV, index=False, sep=";", encoding="utf-8")
 
-import traceback
-
 def pobierz_dane():
     inicjalizuj_plik()
     
@@ -148,15 +165,13 @@ def pobierz_dane():
     if USE_GSHEETS:
         try:
             df = conn.read(ttl=0)
-            # Podstawowe czyszczenie dla Google Sheets
+            # Konwersja dla edytora: X -> True
             for col in ["Zaladunek", "Rozladunek", "Granica"]:
                 if col in df.columns:
-                    df[col] = df[col].apply(lambda x: True if x == "X" else False)
+                    df[col] = df[col].apply(lambda x: True if str(x).upper() == "X" else False)
             return df
         except Exception:
-            st.warning("Problem z dostępem do Arkusza Google!")
-            st.code(traceback.format_exc()) # Wyświetli pełny błąd dla mnie
-            st.info("Prawdopodobne przyczyny: 1. Brak nagłówków. 2. Brak udostępnienia dla e-maila. 3. Błędny link.")
+            st.warning("Problem z połączeniem z Google Sheets. Korzystam z kopii lokalnej.")
 
     # Fallback do CSV
     df = pd.read_csv(PLIK_CSV, sep=";", encoding="utf-8")
@@ -180,21 +195,20 @@ def pobierz_dane():
     return df
 
 def zapisz_dane(df):
-    # Konwersja z powrotem na X przed zapisem
     df_to_save = df.copy()
+    # Konwersja True -> X dla zapisu
     for col in ["Zaladunek", "Rozladunek", "Granica"]:
-        df_to_save[col] = df_to_save[col].apply(lambda x: "X" if x is True else "")
+        if col in df_to_save.columns:
+            df_to_save[col] = df_to_save[col].apply(lambda x: "X" if x is True or str(x).upper() == "X" else "")
     
-    # Zapis lokalny (zawsze warto mieć kopię)
     df_to_save.to_csv(PLIK_CSV, index=False, sep=";", encoding="utf-8")
     
-    # Zapis do Google Sheets
     if USE_GSHEETS:
         try:
             conn.update(data=df_to_save)
             st.toast("Zapisano w Google Sheets! ☁️")
-        except Exception as e:
-            st.error(f"Nie udało się zapisać w chmurze Google: {e}")
+        except Exception:
+            st.error("Błąd zapisu w Google Sheets.")
 
 def pobierz_ostatni_licznik():
     df = pobierz_dane()
@@ -260,9 +274,9 @@ elif strona == "➕ Dodaj Wpis":
         with st.form("form_firma", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
-                data = st.date_input("Data", datetime.date.today())
-                przyj = st.time_input("Przyjazd", datetime.datetime.now().time())
-                odj = st.time_input("Odjazd", datetime.datetime.now().time())
+                data = st.date_input("Data", get_now_pl().date())
+                przyj = st.time_input("Przyjazd", get_now_pl().time(), key="time_p")
+                odj = st.time_input("Odjazd", get_now_pl().time(), key="time_o")
             with col2:
                 firma = st.text_input("Nazwa firmy", placeholder="np. Amazon, DHL")
                 miasto = st.text_input("Miejscowość")
@@ -293,8 +307,8 @@ elif strona == "➕ Dodaj Wpis":
             st.subheader("Przekroczenie Granicy")
             col1, col2 = st.columns(2)
             with col1:
-                data_g = st.date_input("Data", datetime.date.today(), key="g_date")
-                czas_g = st.time_input("Godzina", datetime.datetime.now().time(), key="g_time")
+                data_g = st.date_input("Data", get_now_pl().date(), key="g_date")
+                czas_g = st.time_input("Godzina", get_now_pl().time(), key="g_time")
             with col2:
                 kraj_relacja = st.text_input("Relacja (np. PL/D, D/NL)", placeholder="np. PL/D")
                 miasto_g = st.text_input("Miejscowość (np. Świecko, Zgorzelec)")
@@ -317,7 +331,7 @@ elif strona == "➕ Dodaj Wpis":
             st.subheader("Tankowanie")
             col1, col2 = st.columns(2)
             with col1:
-                data_p = st.date_input("Data", datetime.date.today(), key="p_date")
+                data_p = st.date_input("Data", get_now_pl().date(), key="p_date")
                 litry = st.number_input("Ilosc litrów (L)", min_value=0.0, step=0.1)
             with col2:
                 stacja = st.text_input("Stacja / Miasto")
