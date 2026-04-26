@@ -139,6 +139,8 @@ def inicjalizuj_plik():
         df = pd.DataFrame(columns=NAGLOWKI)
         df.to_csv(PLIK_CSV, index=False, sep=";", encoding="utf-8")
 
+import traceback
+
 def pobierz_dane():
     inicjalizuj_plik()
     
@@ -148,11 +150,13 @@ def pobierz_dane():
             df = conn.read(ttl=0)
             # Podstawowe czyszczenie dla Google Sheets
             for col in ["Zaladunek", "Rozladunek", "Granica"]:
-                df[col] = df[col].apply(lambda x: True if x == "X" else False)
+                if col in df.columns:
+                    df[col] = df[col].apply(lambda x: True if x == "X" else False)
             return df
-        except Exception as e:
-            st.warning(f"Problem z dostępem do Arkusza Google: {e}")
-            st.info("Prawdopodobne przyczyny: 1. Brak nagłówków w arkuszu. 2. Brak udostępnienia dla e-maila serwisowego. 3. Błędny link w Secrets.")
+        except Exception:
+            st.warning("Problem z dostępem do Arkusza Google!")
+            st.code(traceback.format_exc()) # Wyświetli pełny błąd dla mnie
+            st.info("Prawdopodobne przyczyny: 1. Brak nagłówków. 2. Brak udostępnienia dla e-maila. 3. Błędny link.")
 
     # Fallback do CSV
     df = pd.read_csv(PLIK_CSV, sep=";", encoding="utf-8")
