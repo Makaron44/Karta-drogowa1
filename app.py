@@ -14,6 +14,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Inicjalizacja stanu na samym początku (zapobiega pętlom)
+if 'dane_k' not in st.session_state:
+    st.session_state.dane_k = {"kierowca": "", "kierowca2": "", "nr_rej": "", "nr_nac": ""}
+
 # --- STYLIZACJA CSS (Premium Glassmorphism Design) ---
 st.markdown("""
     <style>
@@ -305,23 +309,28 @@ with st.sidebar:
     strona = st.radio("Wybierz sekcje:", ["➕ Dodaj Wpis", "📋 Historia i Edycja", "📊 Raporty i Eksport", "⚙️ Ustawienia"])
     st.divider()
     
-    # Pobieranie danych kierowcy z session_state
-    if 'dane_k' not in st.session_state:
-        st.session_state.dane_k = {"kierowca": "", "kierowca2": "", "nr_rej": "", "nr_nac": ""}
-        
+    # Sekcja informacyjna
     st.info("Aplikacja zoptymalizowana pod iPhone'a. Używaj pionowo.")
 
 # --- SEKCJA 4: USTAWIENIA (NOWE) ---
 if strona == "⚙️ Ustawienia":
     st.markdown('<div class="header-style">⚙️ Ustawienia Raportu</div>', unsafe_allow_html=True)
     with st.form("ustawienia_form"):
-        st.write("Dane do nagłówka PDF:")
-        st.session_state.dane_k['kierowca'] = st.text_input("Imię i Nazwisko kierowcy 1", value=st.session_state.dane_k['kierowca'])
-        st.session_state.dane_k['kierowca2'] = st.text_input("Imię i Nazwisko kierowcy 2", value=st.session_state.dane_k.get('kierowca2', ''))
-        st.session_state.dane_k['nr_rej'] = st.text_input("Numer Rejestracyjny ciągnika", value=st.session_state.dane_k['nr_rej'])
-        st.session_state.dane_k['nr_nac'] = st.text_input("Numer Naczepy", value=st.session_state.dane_k['nr_nac'])
-        if st.form_submit_button("Zapisz ustawienia"):
-            st.success("Ustawienia zapisane tymczasowo (zostaną użyte w PDF)")
+        st.write("Wprowadź dane do nagłówka PDF:")
+        k1 = st.text_input("Imię i Nazwisko kierowcy 1", value=st.session_state.dane_k['kierowca'])
+        k2 = st.text_input("Imię i Nazwisko kierowcy 2", value=st.session_state.dane_k['kierowca2'])
+        rej = st.text_input("Numer Rejestracyjny ciągnika", value=st.session_state.dane_k['nr_rej'])
+        nac = st.text_input("Numer Naczepy", value=st.session_state.dane_k['nr_nac'])
+        
+        if st.form_submit_button("💾 ZAPISZ USTAWIENIA", use_container_width=True):
+            st.session_state.dane_k = {
+                "kierowca": k1,
+                "kierowca2": k2,
+                "nr_rej": rej,
+                "nr_nac": nac
+            }
+            st.success("✅ Ustawienia zapisane!")
+            st.rerun()
 
 # --- SEKCJA 1: DODAWANIE WPISÓW ---
 elif strona == "➕ Dodaj Wpis":
