@@ -138,11 +138,11 @@ def generuj_pdf(df, dane_kierowcy):
     curr_y = pdf.get_y()
     
     # Statystyki po lewej
-    pdf.set_font(font_bold, size=10)
+    pdf.set_font("helvetica", "B", 10)
     pdf.set_text_color(30, 116, 190)
     pdf.text(15, curr_y + 5, "PODSUMOWANIE TRASY")
     pdf.set_text_color(0, 0, 0)
-    pdf.set_font(font_name, size=9)
+    pdf.set_font("helvetica", size=9)
     
     trasa = 0
     if len(df) > 1:
@@ -156,12 +156,12 @@ def generuj_pdf(df, dane_kierowcy):
     pdf.text(15, curr_y + 24, f"Stan licznika: {df['Licznik'].min()} -> {df['Licznik'].max()}")
     
     # Podpisy
-    pdf.set_font(font_name, size=8)
+    pdf.set_font("helvetica", size=8)
     pdf.text(100, curr_y + 40, "..................................................")
-    pdf.text(105, curr_y + 44, "Podpis kierowcy")
+    pdf.text(105, curr_y + 44, usun_polskie_znaki("Podpis kierowcy"))
     
     pdf.text(200, curr_y + 40, "..................................................")
-    pdf.text(205, curr_y + 44, "Pieczątka firmy / Uwagi dyspozytora")
+    pdf.text(205, curr_y + 44, usun_polskie_znaki("Pieczatka firmy / Uwagi dyspozytora"))
     
     return bytes(pdf.output())
 
@@ -287,8 +287,8 @@ elif strona == "➕ Dodaj Wpis":
             col1, col2 = st.columns(2)
             with col1:
                 data = st.date_input("Data", get_now_pl().date())
-                przyj = st.time_input("Przyjazd", get_now_pl().time(), key="time_p")
-                odj = st.time_input("Odjazd", get_now_pl().time(), key="time_o")
+                przyj = st.time_input("Przyjazd", get_now_pl().time(), key="time_p", step=60)
+                odj = st.time_input("Odjazd", get_now_pl().time(), key="time_o", step=60)
             with col2:
                 firma = st.text_input("Nazwa firmy", placeholder="np. Amazon, DHL")
                 miasto = st.text_input("Miejscowość")
@@ -320,7 +320,7 @@ elif strona == "➕ Dodaj Wpis":
             col1, col2 = st.columns(2)
             with col1:
                 data_g = st.date_input("Data", get_now_pl().date(), key="g_date")
-                czas_g = st.time_input("Godzina", get_now_pl().time(), key="g_time")
+                czas_g = st.time_input("Godzina", get_now_pl().time(), key="g_time", step=60)
             with col2:
                 kraj_relacja = st.text_input("Relacja (np. PL/D, D/NL)", placeholder="np. PL/D")
                 miasto_g = st.text_input("Miejscowość (np. Świecko, Zgorzelec)")
