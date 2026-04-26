@@ -63,42 +63,48 @@ def generuj_pdf(df, dane_kierowcy):
         font_bold = "ArialBD"
     except:
         font_name = "Helvetica"
-    # --- NAGŁÓWEK (NIEBIESKI PAS) ---
+    
+    # --- NAGŁÓWEK (PRO) ---
     pdf.set_fill_color(30, 116, 190)
-    pdf.rect(0, 0, 297, 30, 'F')
-    
+    pdf.rect(0, 0, 297, 25, 'F')
     pdf.set_text_color(255, 255, 255)
-    pdf.set_font("helvetica", "B", 16)
-    pdf.cell(0, 10, usun_polskie_znaki("KARTA DROGOWA"), ln=True, align="C")
+    pdf.set_font("helvetica", "B", 20)
+    pdf.text(10, 17, usun_polskie_znaki("KARTA DROGOWA"))
+    
+    pdf.set_font("helvetica", "", 10)
+    pdf.text(230, 17, usun_polskie_znaki(f"Wygenerowano: {datetime.date.today().strftime('%d.%m.%Y')}"))
+    
+    pdf.ln(20)
+    pdf.set_text_color(0, 0, 0)
+    
+    # Ramka z danymi (2 kolumny)
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_fill_color(245, 245, 245)
+    
+    # Rząd 1
+    pdf.cell(45, 8, usun_polskie_znaki(" Kierowca 1:"), 1, 0, "L", True)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(90, 8, f" {usun_polskie_znaki(dane_kierowcy.get('kierowca', ''))}", 1, 0, "L")
+    pdf.set_font("helvetica", "B", 9)
+    pdf.cell(45, 8, usun_polskie_znaki(" Nr rej. ciagnik:"), 1, 0, "L", True)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(0, 8, f" {usun_polskie_znaki(dane_kierowcy.get('nr_rej', ''))}", 1, 1, "L")
+    
+    # Rząd 2
+    pdf.set_font("helvetica", "B", 9)
+    pdf.cell(45, 8, usun_polskie_znaki(" Kierowca 2:"), 1, 0, "L", True)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(90, 8, f" {usun_polskie_znaki(dane_kierowcy.get('kierowca2', ''))}", 1, 0, "L")
+    pdf.set_font("helvetica", "B", 9)
+    pdf.cell(45, 8, usun_polskie_znaki(" Nr naczepy:"), 1, 0, "L", True)
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(0, 8, f" {usun_polskie_znaki(dane_kierowcy.get('nr_nac', ''))}", 1, 1, "L")
+    
     pdf.ln(5)
     
-    # Nagłówek - Dane pojazdu i kierowcy
-    pdf.set_font("helvetica", "B", 10)
-    pdf.set_fill_color(200, 220, 255)
-    pdf.cell(40, 8, usun_polskie_znaki("Kierowca 1:"), 1, 0, "L", True)
-    pdf.set_font("helvetica", "", 10)
-    pdf.cell(100, 8, usun_polskie_znaki(dane_kierowcy.get('kierowca', '')), 1, 0, "L")
-    
-    pdf.set_font("helvetica", "B", 10)
-    pdf.cell(40, 8, usun_polskie_znaki("Nr rej. ciagnik:"), 1, 0, "L", True)
-    pdf.set_font("helvetica", "", 10)
-    pdf.cell(0, 8, usun_polskie_znaki(dane_kierowcy.get('nr_rej', '')), 1, 1, "L")
-    
-    pdf.set_font("helvetica", "B", 10)
-    pdf.cell(40, 8, usun_polskie_znaki("Kierowca 2:"), 1, 0, "L", True)
-    pdf.set_font("helvetica", "", 10)
-    pdf.cell(100, 8, usun_polskie_znaki(dane_kierowcy.get('kierowca2', '')), 1, 0, "L")
-    
-    pdf.set_font("helvetica", "B", 10)
-    pdf.cell(40, 8, usun_polskie_znaki("Nr naczepy:"), 1, 0, "L", True)
-    pdf.set_font("helvetica", "", 10)
-    pdf.cell(0, 8, usun_polskie_znaki(dane_kierowcy.get('nr_nac', '')), 1, 1, "L")
-    
-    pdf.ln(5)
-    
-    # Tabela z danymi
+    # --- TABELA ---
     pdf.set_font("helvetica", "B", 8)
-    pdf.set_fill_color(41, 128, 185)
+    pdf.set_fill_color(30, 116, 190)
     pdf.set_text_color(255, 255, 255)
     
     col_widths = [8, 18, 15, 15, 18, 35, 30, 10, 10, 10, 15, 25, 68]
@@ -112,37 +118,47 @@ def generuj_pdf(df, dane_kierowcy):
     pdf.set_font("helvetica", "", 8)
     
     for index, row in df.iterrows():
-        pdf.cell(col_widths[0], 7, str(index + 1), border=1, align="C")
-        pdf.cell(col_widths[1], 7, usun_polskie_znaki(str(row["Data"])), border=1, align="C")
-        pdf.cell(col_widths[2], 7, usun_polskie_znaki(str(row["Przyjazd"])), border=1, align="C")
-        pdf.cell(col_widths[3], 7, usun_polskie_znaki(str(row["Odjazd"])), border=1, align="C")
-        pdf.cell(col_widths[4], 7, usun_polskie_znaki(str(row["Kod"])), border=1, align="C")
-        pdf.cell(col_widths[5], 7, usun_polskie_znaki(str(row["Miasto"])[:20]), border=1)
-        pdf.cell(col_widths[6], 7, usun_polskie_znaki(str(row["Firma"])[:18]), border=1)
+        # Kolorowanie co drugiego wiersza dla lepszej czytelnosci
+        fill = index % 2 == 0
+        if fill: pdf.set_fill_color(250, 250, 250)
+        else: pdf.set_fill_color(255, 255, 255)
+
+        pdf.cell(col_widths[0], 7, str(index + 1), border=1, align="C", fill=True)
+        pdf.cell(col_widths[1], 7, usun_polskie_znaki(str(row["Data"])), border=1, align="C", fill=True)
+        pdf.cell(col_widths[2], 7, usun_polskie_znaki(str(row["Przyjazd"])), border=1, align="C", fill=True)
+        pdf.cell(col_widths[3], 7, usun_polskie_znaki(str(row["Odjazd"])), border=1, align="C", fill=True)
+        pdf.cell(col_widths[4], 7, usun_polskie_znaki(str(row["Kod"])), border=1, align="C", fill=True)
+        pdf.cell(col_widths[5], 7, f" {usun_polskie_znaki(str(row['Miasto'])[:20])}", border=1, fill=True)
+        pdf.cell(col_widths[6], 7, f" {usun_polskie_znaki(str(row['Firma'])[:18])}", border=1, fill=True)
         
-        pdf.cell(col_widths[7], 7, "X" if row["Zaladunek"] else "", border=1, align="C")
-        pdf.cell(col_widths[8], 7, "X" if row["Rozladunek"] else "", border=1, align="C")
-        pdf.cell(col_widths[9], 7, "X" if row["Granica"] else "", border=1, align="C")
+        pdf.cell(col_widths[7], 7, "X" if row["Zaladunek"] else "", border=1, align="C", fill=True)
+        pdf.cell(col_widths[8], 7, "X" if row["Rozladunek"] else "", border=1, align="C", fill=True)
+        pdf.cell(col_widths[9], 7, "X" if row["Granica"] else "", border=1, align="C", fill=True)
         
-        # Paliwo - obsługa pustych wartości
         paliwo_val = str(row["Paliwo"]) if pd.notna(row["Paliwo"]) and row["Paliwo"] != "" and row["Paliwo"] != 0 else ""
         if paliwo_val == "nan": paliwo_val = ""
+        pdf.cell(col_widths[10], 7, paliwo_val, border=1, align="C", fill=True)
         
-        pdf.cell(col_widths[10], 7, paliwo_val, border=1, align="C")
-        pdf.cell(col_widths[11], 7, usun_polskie_znaki(str(row["Licznik"])), border=1, align="C")
-        pdf.cell(col_widths[12], 7, usun_polskie_znaki(str(row["Komentarz"])[:45]), border=1)
+        # Licznik jako liczba całkowita
+        try:
+            licznik_val = str(int(float(row["Licznik"])))
+        except:
+            licznik_val = str(row["Licznik"])
+        pdf.cell(col_widths[11], 7, licznik_val, border=1, align="C", fill=True)
+        
+        pdf.cell(col_widths[12], 7, f" {usun_polskie_znaki(str(row['Komentarz'])[:45])}", border=1, fill=True)
         pdf.ln()
     
-    # --- PODSUMOWANIE NA DOLE ---
-    pdf.ln(10)
+    # --- PODSUMOWANIE ---
+    pdf.ln(5)
     curr_y = pdf.get_y()
     
-    # Statystyki po lewej
+    # Ramka podsumowania
+    pdf.set_fill_color(245, 245, 245)
+    pdf.rect(10, curr_y, 100, 30, 'F')
     pdf.set_font("helvetica", "B", 10)
-    pdf.set_text_color(30, 116, 190)
-    pdf.text(15, curr_y + 5, "PODSUMOWANIE TRASY")
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font("helvetica", size=9)
+    pdf.text(15, curr_y + 7, usun_polskie_znaki("PODSUMOWANIE TRASY"))
+    pdf.set_font("helvetica", "", 9)
     
     trasa = 0
     if len(df) > 1:
@@ -151,17 +167,23 @@ def generuj_pdf(df, dane_kierowcy):
     
     paliwo_suma = pd.to_numeric(df['Paliwo'], errors='coerce').fillna(0).sum()
     
-    pdf.text(15, curr_y + 12, f"Suma kilometrów: {trasa} km")
-    pdf.text(15, curr_y + 18, f"Zatankowano: {paliwo_suma:.2f} L")
-    pdf.text(15, curr_y + 24, f"Stan licznika: {df['Licznik'].min()} -> {df['Licznik'].max()}")
+    pdf.text(15, curr_y + 15, usun_polskie_znaki(f"Suma kilometrow: {trasa} km"))
+    pdf.text(15, curr_y + 21, usun_polskie_znaki(f"Zatankowano: {paliwo_suma:.2f} L"))
+    
+    try:
+        l_min = int(float(df['Licznik'].min()))
+        l_max = int(float(df['Licznik'].max()))
+        pdf.text(15, curr_y + 27, usun_polskie_znaki(f"Stan licznika: {l_min} -> {l_max}"))
+    except:
+        pass
     
     # Podpisy
-    pdf.set_font("helvetica", size=8)
-    pdf.text(100, curr_y + 40, "..................................................")
-    pdf.text(105, curr_y + 44, usun_polskie_znaki("Podpis kierowcy"))
+    pdf.set_font("helvetica", "", 8)
+    pdf.text(140, curr_y + 25, "......................................................................")
+    pdf.text(155, curr_y + 29, usun_polskie_znaki("Podpis kierowcy"))
     
-    pdf.text(200, curr_y + 40, "..................................................")
-    pdf.text(205, curr_y + 44, usun_polskie_znaki("Pieczatka firmy / Uwagi dyspozytora"))
+    pdf.text(210, curr_y + 25, "......................................................................")
+    pdf.text(215, curr_y + 29, usun_polskie_znaki("Pieczatka firmy / Uwagi dyspozytora"))
     
     return bytes(pdf.output())
 
