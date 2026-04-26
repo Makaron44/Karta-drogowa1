@@ -18,6 +18,96 @@ st.set_page_config(
 if 'dane_k' not in st.session_state:
     st.session_state.dane_k = {"kierowca": "", "kierowca2": "", "nr_rej": "", "nr_nac": ""}
 
+# --- STYLIZACJA CSS (Safe & Dark Premium) ---
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+    /* Globalne tło i czcionka */
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        background-color: #0f172a !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    /* Pasek boczny */
+    [data-testid="stSidebar"] {
+        background-color: #1e293b !important;
+        border-right: 1px solid #334155;
+    }
+    [data-testid="stSidebar"] * {
+        color: #f8fafc !important;
+    }
+
+    /* Nagłówek - Kolorowy Gradient */
+    .header-style {
+        font-family: 'Inter', sans-serif;
+        font-size: 32px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #4ade80, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 25px;
+    }
+
+    /* Formularz - Solidny Ciemny */
+    div[data-testid="stForm"] {
+        border-radius: 20px;
+        padding: 25px;
+        background-color: #1e293b !important;
+        border: 1px solid #334155;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Etykiety i Teksty */
+    label, .stCheckbox p {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        font-size: 0.8rem !important;
+    }
+
+    /* Pola wejściowe */
+    .stTextInput input, .stNumberInput input, .stDateInput input, .stTimeInput input, .stSelectbox div {
+        background-color: #0f172a !important;
+        border: 1px solid #334155 !important;
+        color: #ffffff !important;
+        border-radius: 10px !important;
+    }
+
+    /* Przyciski */
+    .stButton>button {
+        border-radius: 12px;
+        height: 3.5em;
+        background-color: #16a34a !important;
+        color: white !important;
+        font-weight: 800;
+        border: none;
+        width: 100%;
+    }
+    .stButton>button:hover {
+        background-color: #22c55e !important;
+    }
+
+    /* Zakładki */
+    .stTabs [data-baseweb="tab-list"] {
+        background-color: #1e293b;
+        padding: 8px;
+        border-radius: 15px;
+        border: 1px solid #334155;
+        gap: 10px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #94a3b8;
+        padding: 10px 20px !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #334155 !important;
+        color: white !important;
+        border-radius: 10px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- STAŁE I PLIKI ---
 PLIK_CSV = Path("karta_nowoczesna.csv")
 NAGLOWKI = ["Data", "Przyjazd", "Odjazd", "Kod", "Miasto", "Firma", "Zaladunek", "Rozladunek", "Granica", "Paliwo", "Licznik", "Komentarz"]
