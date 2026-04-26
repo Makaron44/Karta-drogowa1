@@ -11,108 +11,12 @@ st.set_page_config(
     page_title="Karta Drogowa PRO", 
     page_icon="🚛", 
     layout="centered",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="auto"
 )
 
 # Inicjalizacja stanu na samym początku (zapobiega pętlom)
 if 'dane_k' not in st.session_state:
     st.session_state.dane_k = {"kierowca": "", "kierowca2": "", "nr_rej": "", "nr_nac": ""}
-
-# --- STYLIZACJA CSS (Solid Premium Design) ---
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-
-    /* Nagłówek i tło */
-    [data-testid="stHeader"] {
-        background-color: #0f172a !important;
-    }
-    
-    .stApp, [data-testid="stAppViewContainer"] {
-        background-color: #0f172a !important;
-        font-family: 'Inter', sans-serif !important;
-    }
-
-    /* Pasek boczny - Solidny */
-    [data-testid="stSidebar"] {
-        background-color: #1e293b !important;
-        border-right: 1px solid #334155;
-    }
-
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, 
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stRadio div {
-        color: #f8fafc !important;
-    }
-
-    /* Kolorowy Nagłówek */
-    .header-style {
-        font-family: 'Inter', sans-serif;
-        font-size: 32px;
-        font-weight: 800;
-        background: linear-gradient(135deg, #4ade80 0%, #3b82f6 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 25px;
-    }
-
-    /* Formularz - Solidny, bez przezroczystości */
-    div[data-testid="stForm"] {
-        border-radius: 20px;
-        padding: 25px;
-        background-color: #1e293b !important;
-        border: 1px solid #334155;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    }
-
-    /* Etykiety i teksty */
-    div[data-testid="stForm"] label, .stCheckbox p {
-        color: #ffffff !important;
-        font-weight: 600 !important;
-        text-transform: uppercase;
-        font-size: 0.85rem !important;
-    }
-    
-    /* Inputy */
-    .stTextInput input, .stNumberInput input, .stDateInput input, .stTimeInput input, .stSelectbox div {
-        background-color: #0f172a !important;
-        border: 1px solid #334155 !important;
-        color: #ffffff !important;
-        border-radius: 10px !important;
-    }
-
-    /* Przyciski */
-    .stButton>button {
-        border-radius: 12px;
-        height: 3.5em;
-        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-        color: white !important;
-        font-weight: 800;
-        border: none;
-    }
-    
-    .stButton>button:hover {
-        background: #22c55e !important;
-        transform: translateY(-1px);
-    }
-
-    /* Zakładki */
-    .stTabs [data-baseweb="tab-list"] {
-        background-color: #1e293b;
-        padding: 5px;
-        border-radius: 15px;
-        border: 1px solid #334155;
-    }
-    .stTabs [data-baseweb="tab"] {
-        color: #94a3b8;
-        padding: 10px 20px !important;
-    }
-    .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background-color: #334155 !important;
-        color: #ffffff !important;
-        border-radius: 10px !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
 # --- STAŁE I PLIKI ---
 PLIK_CSV = Path("karta_nowoczesna.csv")
