@@ -64,43 +64,26 @@ def generuj_pdf(df, dane_kierowcy):
     except:
         font_name = "Helvetica"
     
-    # --- NAGŁÓWEK (PRO) ---
+    # --- NAGŁÓWEK KOMPAKTOWY (PRO) ---
     pdf.set_fill_color(30, 116, 190)
-    pdf.rect(0, 0, 297, 25, 'F')
+    pdf.rect(0, 0, 297, 30, 'F')
     pdf.set_text_color(255, 255, 255)
-    pdf.set_font("helvetica", "B", 20)
-    pdf.text(10, 17, usun_polskie_znaki("KARTA DROGOWA"))
     
-    pdf.set_font("helvetica", "", 10)
-    pdf.text(230, 17, usun_polskie_znaki(f"Wygenerowano: {datetime.date.today().strftime('%d.%m.%Y')}"))
+    # Lewa strona nagłówka
+    pdf.set_font("helvetica", "B", 22)
+    miesiac_rok = get_now_pl().strftime("%m.%Y")
+    pdf.text(10, 20, usun_polskie_znaki(f"KARTA DROGOWA - {miesiac_rok}"))
     
-    pdf.ln(20)
+    # Prawa strona nagłówka (Dane skondensowane)
+    pdf.set_font("helvetica", "", 9)
+    x_offset = 200
+    pdf.text(x_offset, 10, usun_polskie_znaki(f"Kierowca 1: {dane_kierowcy.get('kierowca', '')}"))
+    pdf.text(x_offset, 15, usun_polskie_znaki(f"Kierowca 2: {dane_kierowcy.get('kierowca2', '')}"))
+    pdf.text(x_offset, 20, usun_polskie_znaki(f"Nr Rejestracyjny: {dane_kierowcy.get('nr_rej', '')}"))
+    pdf.text(x_offset, 25, usun_polskie_znaki(f"Nr Naczepy: {dane_kierowcy.get('nr_nac', '')}"))
+    
+    pdf.ln(32) # Start tabeli zaraz pod paskiem
     pdf.set_text_color(0, 0, 0)
-    
-    # Ramka z danymi (2 kolumny)
-    pdf.set_font("helvetica", "B", 9)
-    pdf.set_fill_color(245, 245, 245)
-    
-    # Rząd 1
-    pdf.cell(45, 8, usun_polskie_znaki(" Kierowca 1:"), 1, 0, "L", True)
-    pdf.set_font("helvetica", "", 10)
-    pdf.cell(90, 8, f" {usun_polskie_znaki(dane_kierowcy.get('kierowca', ''))}", 1, 0, "L")
-    pdf.set_font("helvetica", "B", 9)
-    pdf.cell(45, 8, usun_polskie_znaki(" Nr rej. ciagnik:"), 1, 0, "L", True)
-    pdf.set_font("helvetica", "", 10)
-    pdf.cell(0, 8, f" {usun_polskie_znaki(dane_kierowcy.get('nr_rej', ''))}", 1, 1, "L")
-    
-    # Rząd 2
-    pdf.set_font("helvetica", "B", 9)
-    pdf.cell(45, 8, usun_polskie_znaki(" Kierowca 2:"), 1, 0, "L", True)
-    pdf.set_font("helvetica", "", 10)
-    pdf.cell(90, 8, f" {usun_polskie_znaki(dane_kierowcy.get('kierowca2', ''))}", 1, 0, "L")
-    pdf.set_font("helvetica", "B", 9)
-    pdf.cell(45, 8, usun_polskie_znaki(" Nr naczepy:"), 1, 0, "L", True)
-    pdf.set_font("helvetica", "", 10)
-    pdf.cell(0, 8, f" {usun_polskie_znaki(dane_kierowcy.get('nr_nac', ''))}", 1, 1, "L")
-    
-    pdf.ln(5)
     
     # --- TABELA ---
     pdf.set_font("helvetica", "B", 8)
