@@ -5,6 +5,7 @@ import csv
 from pathlib import Path
 import io
 from fpdf import FPDF
+from streamlit_gsheets import GSheetsConnection
 
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(
@@ -17,6 +18,13 @@ st.set_page_config(
 # Inicjalizacja stanu na samym początku (zapobiega pętlom)
 if 'dane_k' not in st.session_state:
     st.session_state.dane_k = {"kierowca": "", "kierowca2": "", "nr_rej": "", "nr_nac": ""}
+
+# Połączenie z Google Sheets (jeśli skonfigurowane w Secrets)
+try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    USE_GSHEETS = True
+except:
+    USE_GSHEETS = False
 
 # --- STAŁE I PLIKI ---
 PLIK_CSV = Path("karta_nowoczesna.csv")
@@ -132,6 +140,19 @@ def inicjalizuj_plik():
 
 def pobierz_dane():
     inicjalizuj_plik()
+    
+    # Próba pobrania z Google Sheets
+    if USE_GSHEETS:
+        try:
+            df = conn.read(ttl=0)
+            # Podstawowe czyszczenie dla Google Sheets
+            for col in ["Zaladunek", "Rozladunek", "Granica"]:
+                df[col] = df[col].apply(lambda x: True if x == "X" else False)
+            return df
+        except Exception as e:
+            st.warning(f"Błąd połączenia z Google Sheets (korzystam z pliku lokalnego): {e}")
+
+    # Fallback do CSV
     df = pd.read_csv(PLIK_CSV, sep=";", encoding="utf-8")
     
     # Inteligentne czyszczenie kolumn
@@ -143,22 +164,31 @@ def pobierz_dane():
             if f_val.is_integer(): return str(int(f_val))
             return str(f_val)
         except:
-            return str(val) # Zwróć tekst (np. PL/D) jeśli nie jest liczbą
+            return str(val)
 
     df["Kod"] = df["Kod"].apply(clean_number)
     df["Licznik"] = df["Licznik"].apply(clean_number)
 
-    # Konwersja kolumn na bool dla edytora (X -> True, puste -> False)
     for col in ["Zaladunek", "Rozladunek", "Granica"]:
         df[col] = df[col].apply(lambda x: True if x == "X" else False)
     return df
 
 def zapisz_dane(df):
-    # Konwersja z powrotem na X przed zapisem do CSV
+    # Konwersja z powrotem na X przed zapisem
     df_to_save = df.copy()
     for col in ["Zaladunek", "Rozladunek", "Granica"]:
         df_to_save[col] = df_to_save[col].apply(lambda x: "X" if x is True else "")
+    
+    # Zapis lokalny (zawsze warto mieć kopię)
     df_to_save.to_csv(PLIK_CSV, index=False, sep=";", encoding="utf-8")
+    
+    # Zapis do Google Sheets
+    if USE_GSHEETS:
+        try:
+            conn.update(data=df_to_save)
+            st.toast("Zapisano w Google Sheets! ☁️")
+        except Exception as e:
+            st.error(f"Nie udało się zapisać w chmurze Google: {e}")
 
 def pobierz_ostatni_licznik():
     df = pobierz_dane()
@@ -172,14 +202,15 @@ def pobierz_ostatni_licznik():
     return 0
 
 def dodaj_wpis(nowy_wpis):
+    df = pobierz_dane()
+    # Konwersja booleana na X dla spójności zapisu
     for col in ["Zaladunek", "Rozladunek", "Granica"]:
         if isinstance(nowy_wpis.get(col), bool):
             nowy_wpis[col] = "X" if nowy_wpis[col] else ""
             
-    df = pd.read_csv(PLIK_CSV, sep=";", encoding="utf-8")
     nowy_df = pd.DataFrame([nowy_wpis])
-    df = pd.concat([df, nowy_df], ignore_index=True)
-    df.to_csv(PLIK_CSV, index=False, sep=";", encoding="utf-8")
+    df_final = pd.concat([df, nowy_df], ignore_index=True)
+    zapisz_dane(df_final)
 
 # --- NAWIGACJA ---
 with st.sidebar:
