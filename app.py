@@ -23,7 +23,8 @@ if 'dane_k' not in st.session_state:
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
     USE_GSHEETS = True
-except:
+except Exception as e:
+    st.error(f"KRYTYCZNY BŁĄD KONFIGURACJI SECRETS: {e}")
     USE_GSHEETS = False
 
 # --- STAŁE I PLIKI ---
@@ -150,7 +151,8 @@ def pobierz_dane():
                 df[col] = df[col].apply(lambda x: True if x == "X" else False)
             return df
         except Exception as e:
-            st.warning(f"Błąd połączenia z Google Sheets (korzystam z pliku lokalnego): {e}")
+            st.warning(f"Problem z dostępem do Arkusza Google: {e}")
+            st.info("Prawdopodobne przyczyny: 1. Brak nagłówków w arkuszu. 2. Brak udostępnienia dla e-maila serwisowego. 3. Błędny link w Secrets.")
 
     # Fallback do CSV
     df = pd.read_csv(PLIK_CSV, sep=";", encoding="utf-8")
